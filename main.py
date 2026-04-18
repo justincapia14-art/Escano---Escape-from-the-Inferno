@@ -45,6 +45,7 @@ world_surface = pygame.Surface((width, height))
 # ====================================================
 from assets import *
 from beginner_level_blocks import get_platforms, draw_platforms
+from master_level_blocks import master_get_platforms, master_draw_platforms
 
 # ====================================================
 # GAME STATE & VARIABLES
@@ -258,7 +259,7 @@ while running:
             running = False
 
         # DETECTION OF MOUSE SCROLL
-        if event.type == pygame.MOUSEWHEEL and game_state == "level_beginner":
+        if event.type == pygame.MOUSEWHEEL and game_state in ["level_beginner", "level_master"]:
             # Magpapalit ng skill kapag nag-scroll (pataas o pababa)
             current_skill_index = (current_skill_index + event.y) % len(skills_list)
             current_skill = skills_list[current_skill_index]
@@ -1062,16 +1063,181 @@ while running:
     elif game_state == "level_master":
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
-        # if hit_cooldown > 0:
-        #     hit_cooldown -= 1 
+        # ==========================================
+        # STEP 1: COOLDOWNS AT BASIC INPUTS
+        # ==========================================
+        if hit_cooldown > 0:
+            hit_cooldown -= 1
 
-        # keys = pygame.key.get_pressed()
-        # player_angle %= 360
-        # player_rect = pygame.Rect(x, y, player_width, player_height)
+        keys = pygame.key.get_pressed()
+        player_angle %= 360
+        player_rect = pygame.Rect(x, y, player_width, player_height)
 
-        # if player_shoot_cooldown > 0:
-        #     player_shoot_cooldown -= 1
+        if player_shoot_cooldown > 0:
+            player_shoot_cooldown -= 1
+            
+        if shoot_anim_timer > 0:
+            shoot_anim_timer -= 1
 
+        # ==========================================
+        # STEP 2: MOUSE CONTROLS, ULTIMATE, AT GUN
+        # ==========================================
+        escano_ult.update()
+        mouse_buttons = pygame.mouse.get_pressed()
+        left_click = mouse_buttons[0]
+        right_click = mouse_buttons[2]
+
+        if current_skill == "Ultimate":
+            solid_platforms = master_get_platforms() # Gamit ang master platforms
+            if escano_ult.handle_input(left_click, right_click, x, y, player_width, player_height, solid_platforms):
+                screen_shake_frames = 15 
+                ultimate_sound.play()   
+        else:
+            escano_ult.is_charging = False
+            escano_ult.charge_timer = 0
+            
+            if current_skill == "Gun":
+                if left_click and player_shoot_cooldown <= 0:
+                    player_bullets.append([x, y + (player_height // 2), -7]) 
+                    player_shoot_cooldown = max_shoot_cooldown
+                    shoot_anim_timer = 15
+                    aim_direction = "left"
+                    player_shoot_sound.play()
+                    
+                elif right_click and player_shoot_cooldown <= 0:
+                    player_bullets.append([x + player_width, y + (player_height // 2), 7])
+                    player_shoot_cooldown = max_shoot_cooldown
+                    shoot_anim_timer = 15
+                    aim_direction = "right"
+                    player_shoot_sound.play()
+
+        # CHARGING SOUND LOGIC
+        if escano_ult.is_charging:
+            if not is_playing_charge_sound:
+                charging.play(loops=-1) 
+                is_playing_charge_sound = True
+        else:
+            if is_playing_charge_sound:
+                charging.stop()
+                is_playing_charge_sound = False
+
+        # BULLET POSITION UPDATE
+        for bullet in player_bullets[:]:
+            bullet[0] += bullet[2] 
+            if bullet[0] < 0 or bullet[0] > width:
+                if bullet in player_bullets:
+                    player_bullets.remove(bullet)
+                continue
+
+        # ==========================================
+        # STEP 3: PLATFORMS, GRAVITY, AT MOVEMENT
+        # ==========================================
+        platforms = master_get_platforms() # Para hindi lumutang sa master level map
+        player_rect = pygame.Rect(x, y, player_width, player_height)
+        on_ground, baliktadrotate, y, velocity_y = check_pre_gravity_ground(player_rect, platforms, y, velocity_y)
+
+        dx = 0
+
+        # JUMP
+        if (keys[pygame.K_SPACE] or keys[pygame.K_w]) and on_ground:
+            velocity_y = jump_speed
+            moving = True
+            for _ in range(100):
+                particles.append(Particle(x + player_width // 2, y + player_height))
+
+        # MOVE LEFT / RIGHT
+        if keys[pygame.K_a]:
+            dx = -speed
+            moving = True
+            if baliktadrotate == "no":
+                direction = "left"
+                player_angle += 8
+            else:
+                direction = "right"
+                player_angle -= 8
+        elif keys[pygame.K_d]:
+            dx = speed
+            moving = True
+            if baliktadrotate == "no":
+                direction = "right"
+                player_angle -= 8
+            else:
+                direction = "left"
+                player_angle += 8
+        else:
+            moving = False
+
+        # ==========================================
+        # STEP 4: HORIZONTAL / VERTICAL COLLISION
+        # ==========================================
+        x += dx
+        player_rect = pygame.Rect(x, y, player_width, player_height)
+        x = handle_horizontal_collision(player_rect, platforms, x, dx, player_width)
+
+        velocity_y += gravity
+        y += velocity_y
+
+        player_rect = pygame.Rect(x, y, player_width, player_height)
+        y, velocity_y, on_ground, baliktadrotate = handle_vertical_collision(player_rect, platforms, y, velocity_y, player_height, baliktadrotate)
+        x, y = apply_screen_bounds(x, y, player_width, player_height, width, height)
+
+        if y >= height - player_height:
+            velocity_y = 0
+            on_ground = True
+            baliktadrotate = "no"
+
+        # ==========================================
+        # STEP 5: DRAW ENVIRONMENT AT PLAYER
+        # ==========================================
+        screen.blit(levels_background, (0, 0))
+        master_draw_platforms(screen, ground1, ground2, brick1, brick2)
+
+        shake_x, shake_y = escano_ult.get_player_shake()
+        escano_ult.draw_glow(screen, x, y, player_width, player_height)
+
+        if escano_ult.is_charging:
+            if escano_ult.charge_direction == "left":
+                screen.blit(break_block_left, (x + shake_x, y + shake_y))
+            else:
+                screen.blit(break_block_right, (x + shake_x, y + shake_y))
+        elif shoot_anim_timer > 0:
+            if aim_direction == "left":
+                screen.blit(aim_left, (x + shake_x, y + shake_y))
+            else:
+                screen.blit(aim_right, (x + shake_x, y + shake_y))
+        elif moving:
+            rotated_player = pygame.transform.rotate(player_face, player_angle)
+            new_rect = rotated_player.get_rect(center=(x + player_width // 2, y + player_height // 2))
+            screen.blit(rotated_player, (new_rect.x + shake_x, new_rect.y + shake_y))
+        else:
+            screen.blit(player_face, (x + shake_x, y + shake_y))
+
+        escano_ult.draw_ui(screen, x + shake_x, y + shake_y)
+
+        for bullet in player_bullets:
+            pygame.draw.circle(screen, (255, 255, 0), (int(bullet[0]), int(bullet[1])), 4)
+
+        if skill_ui_timer > 0:
+            skill_ui_timer -= 1
+                    # Kulay depende sa skill
+            if current_skill == "Gun":
+                text_color = (100, 255, 100) # Greenish
+            else:
+                text_color = (255, 150, 0)   # Orange/Gold
+                    
+            # background box 
+            ui_text = font.render(f"EQUIPPED: {current_skill.upper()}", True, text_color)
+            text_rect = ui_text.get_rect(center=(width // 2, height - 30))
+                        
+            # Fade effect para sa UI (fade in then fade out)
+            alpha = min(255, int((skill_ui_timer / 120) * 255 * 2))
+            ui_surface = pygame.Surface((text_rect.width + 20, text_rect.height + 10), pygame.SRCALPHA)
+            pygame.draw.rect(ui_surface, (0, 0, 0, alpha // 2), ui_surface.get_rect(), border_radius=5)
+                
+            # Draw border
+            ui_text.set_alpha(alpha)
+            screen.blit(ui_surface, (text_rect.x - 10, text_rect.y - 5))
+            screen.blit(ui_text, text_rect)
 
     pygame.display.update()
     clock.tick(60)
