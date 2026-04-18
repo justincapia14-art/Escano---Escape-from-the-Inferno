@@ -314,6 +314,10 @@ while running:
                 elif master_button_rect.collidepoint(event.pos):
                     click_sound.play()
                     print("Master clicked")
+                    loading_progress = 0
+                    target_level = "level_master"
+                    # target_music = "music/master_music.wav"
+                    game_state = "loading"
                 elif back_button_rect.collidepoint(event.pos):
                     click_sound.play()
                     game_state = "menu"
@@ -425,6 +429,14 @@ while running:
                 pygame.mixer.music.load(target_music)
                 pygame.mixer.music.set_volume(0.5)
                 pygame.mixer.music.play(-1)
+
+            elif target_level == "level_master":
+                # reset_master_level() # temporary function, since master level isn't made yet
+                game_state = "level_master"
+                master_music.play(fade_ms=1000)
+                master_music.set_volume(0.5)
+                master_music.play(-1)
+                
     # ====================================================
 
     # exit confirm screen
@@ -507,7 +519,7 @@ while running:
         player_rect = pygame.Rect(x, y, player_width, player_height)
 
         # ====================================================
-        # ULTIMATE & SHOOTING MOUSE CONTROLS (NEW)
+        # ULTIMATE & SHOOTING MOUSE CONTROLS AND LOGIC
         # ====================================================
         escano_ult.update()
         mouse_buttons = pygame.mouse.get_pressed()
@@ -562,7 +574,7 @@ while running:
                 charging.stop()
                 is_playing_charge_sound = False
 
-# ====================================================
+        # ====================================================
         # CHECK ULTIMATE COLLISION (BRICKS & ENEMIES)
         # ====================================================
         if escano_ult.active_laser:
@@ -868,7 +880,7 @@ while running:
         shake_x, shake_y = escano_ult.get_player_shake()
         escano_ult.draw_glow(world_surface, x, y, player_width, player_height)
 
-# draw player
+        # draw player
         # Kunin ang shake at i-draw ang glow sa likod BAGO i-draw ang player
         shake_x, shake_y = escano_ult.get_player_shake()
         escano_ult.draw_glow(world_surface, x, y, player_width, player_height)
@@ -1046,6 +1058,20 @@ while running:
             defeat_sound.play()
             game_state = "defeat"
             frozen_game_frame = screen.copy()
+
+    elif game_state == "level_master":
+        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+
+        # if hit_cooldown > 0:
+        #     hit_cooldown -= 1 
+
+        # keys = pygame.key.get_pressed()
+        # player_angle %= 360
+        # player_rect = pygame.Rect(x, y, player_width, player_height)
+
+        # if player_shoot_cooldown > 0:
+        #     player_shoot_cooldown -= 1
+
 
     pygame.display.update()
     clock.tick(60)
