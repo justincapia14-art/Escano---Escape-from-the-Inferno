@@ -1,11 +1,5 @@
 import pygame
 
-# ==========================================
-# THE GOD-TIER MAZE TILEMAP
-# B = Brick | G = Ground | Space (" ") = Daanan
-# Bawat letra ay eksaktong 20x20 pixels sa screen mo!
-# Screen size mo ay 800x500 (40 columns x 25 rows)
-# ==========================================
 MAZE_MAP = [
     "B BBBBBBBBBBBBBBBB B BBBBBBBBBBBBBBBBB B",
     "B                  B                   B",
