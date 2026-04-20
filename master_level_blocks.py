@@ -1,3 +1,4 @@
+#master_level_blocks.py
 import pygame
 
 MAZE_MAP = [

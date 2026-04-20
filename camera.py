@@ -9,7 +9,7 @@ def draw_zoomed_camera(screen, world_surface, target_x, target_y, target_width, 
     cam_x = target_x + (target_width // 2) - (cam_width // 2)
     cam_y = target_y + (target_height // 2) - (cam_height // 2)
 
-    # Kunin ang size ng buong MAPA para hindi lumagpas ang camera
+    #buong MAPA para hindi lumagpas ang camera
     world_width, world_height = world_surface.get_size()
     cam_x = max(0, min(cam_x, world_width - cam_width))
     cam_y = max(0, min(cam_y, world_height - cam_height))

@@ -121,7 +121,7 @@ class HealEffect:
 
 class EscanoUltimate:
     def __init__(self):
-        self.cooldown_max = 600  # 10 seconds (assuming 60 FPS)
+        self.cooldown_max = 600  # 10 seconds
         self.cooldown_timer = 0
         self.charge_max = 120    # 2 seconds na hold
         self.charge_timer = 0
@@ -131,17 +131,17 @@ class EscanoUltimate:
         self.charge_particles = [] # DITO MASI-SAVE ANG ENERGY PARTICLES
 
     def update(self):
-        # 1. Update ng cooldown
+        # Update ng cooldown
         if self.cooldown_timer > 0:
             self.cooldown_timer -= 1
         
-        # 2. Update ng active laser
+        # Update ng active laser
         if self.active_laser:
             self.active_laser['timer'] -= 1
             if self.active_laser['timer'] <= 0:
                 self.active_laser = None
 
-        # 3. Update ng Energy Particles (para lumipad pataas at mawala)
+        # Update ng Energy Particles (para lumipad pataas at mawala)
         for p in self.charge_particles[:]:
             p['x'] += p['dx']
             p['y'] += p['dy']
@@ -237,10 +237,10 @@ class EscanoUltimate:
             # Mag-spawn ng 3 particles per frame para makapal ang aura
             for _ in range(3):
                 self.charge_particles.append({
-                    'x': player_x + random.uniform(0, player_width), # Saan lilitaw (x)
-                    'y': player_y + player_height,                   # Saan lilitaw (y) - sa bandang paa
-                    'dx': random.uniform(-1, 1),                     # Gagalaw ba pakaliwa o pakanan?
-                    'dy': random.uniform(-4, -1),                    # Gagalaw PATAAS ng mabilis
+                    'x': player_x + random.uniform(0, player_width), 
+                    'y': player_y + player_height,                 
+                    'dx': random.uniform(-1, 1),                    
+                    'dy': random.uniform(-4, -1),                   
                     'lifetime': random.randint(15, 30),
                     'size': random.uniform(3, 6),
                     # Kulay Apoy / Kuryente (Orange, Yellow, Yellow-White)

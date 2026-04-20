@@ -18,10 +18,6 @@ from mechanics import (
     EscanoUltimate
 )
 
-# ====================================================
-# PYGAME INITIALIZATION & WINDOW SETUP
-# Start Pygame engine, screen size, and window title
-# ====================================================
 pygame.init()
 pygame.mixer.init()
 
@@ -33,23 +29,12 @@ pygame.display.set_caption("Escano")
 clock = pygame.time.Clock()
 font = pygame.font.SysFont("arial", 20, bold=True)
 
-# ====================================================
-# CAMERA SETUP
-# Make a surface to draw the game world before zooming
-# ====================================================
 world_surface = pygame.Surface((width, height))
 
-# ====================================================
-# ASSETS & PLATFORMS
-# Get platforms and pictures from other files
-# ====================================================
 from assets import *
 from beginner_level_blocks import get_platforms, draw_platforms
 from master_level_blocks import master_get_platforms, master_draw_platforms
 
-# ====================================================
-# GAME STATE & VARIABLES
-# ====================================================
 time = 0
 game_state = "menu"
 direction = "face"
@@ -72,7 +57,7 @@ skill_ui_timer = 0  # Timer para ipakita yung text sa screen
 # ====================================================
 player_hp = 100
 max_hp = 100
-hit_cooldown = 0
+hit_cooldown = 1
 x = 400
 y = 440
 speed = 1.5
@@ -234,13 +219,6 @@ vignette_surface = generate_vignette(width, height)
 #breakable brick ultimate
 escano_ult = EscanoUltimate()
 screen_shake_frames = 0
-# breakable_bricks = [pygame.Rect(780, 320, 20, 20),
-#                     pygame.Rect(780, 300, 20, 20),
-#                     pygame.Rect(760, 300, 20, 20),
-#                     pygame.Rect(760, 320, 20, 20),
-#                     pygame.Rect(300, 0, 20, 20),
-
-# ]
 
 # ====================================================
 # OBJECT INSTANTIATION
@@ -260,7 +238,6 @@ while running:
 
         # DETECTION OF MOUSE SCROLL
         if event.type == pygame.MOUSEWHEEL and game_state in ["level_beginner", "level_master"]:
-            # Magpapalit ng skill kapag nag-scroll (pataas o pababa)
             current_skill_index = (current_skill_index + event.y) % len(skills_list)
             current_skill = skills_list[current_skill_index]
             skill_ui_timer = 120  # Ipakita ang text sa loob ng 2 seconds (120 frames)
@@ -468,11 +445,11 @@ while running:
         exit_music.fadeout(1000)
         pygame.mixer.music.fadeout(1000)
         
-        # 1. I-draw palagi yung na-freeze na laro para hindi mag-iwan ng trails
+        # draw the last game play
         if frozen_game_frame:
             screen.blit(frozen_game_frame, (0, 0))
             
-        # 2. Lagyan ng manipis na red/dark tint para halatang "Game Over" na
+        # DEATH TINT, manipis na layer kulay red
         tint = pygame.Surface((width, height), pygame.SRCALPHA)
         tint.fill((20, 0, 0, 150)) # Semi-transparent na dark red
         screen.blit(tint, (0, 0))
@@ -482,7 +459,7 @@ while running:
         
         if glitch_chance > 85:
             # Matinding blink (Gagawing medyo maitim ang screen saglit)
-            blink = pygame.Surface((width, height), pygame.SRCALPHA)
+            blink = pygame.Surface((width, height), pygame.SRCALPHA) #SRCALPHA for activating transparency
             blink.fill((5, 5, 5, 220)) 
             screen.blit(blink, (0, 0))
             
@@ -578,21 +555,31 @@ while running:
         # ====================================================
         # CHECK ULTIMATE COLLISION (BRICKS & ENEMIES)
         # ====================================================
+        # If the ultimate laser is currently active
         if escano_ult.active_laser:
+            # Get the laser object (dictionary)
             laser = escano_ult.active_laser
+            # Collision rectangle of the laser
             laser_rect = laser['rect']
-            
+
+
+            # Ensure laser has not exceeded max number of allowed breaks
             if laser['current_breaks'] < laser['max_breaks']:
+                # Get all bricks currently hit by the laser
                 hit_bricks = [b for b in breakable_bricks if laser_rect.colliderect(b)]
                 
+                # Sort bricks based on laser direction for consistent destruction order
                 if laser['dir'] == "right":
                     hit_bricks.sort(key=lambda b: b.x)
                 else:
                     hit_bricks.sort(key=lambda b: b.x, reverse=True) 
                 
+                # Process each hit brick
                 for b in hit_bricks:
+                    # Check again if laser can still break more bricks
                     if laser['current_breaks'] < laser['max_breaks']:
                         if b in breakable_bricks:
+                            # Remove brick (destroy it)
                             breakable_bricks.remove(b)
                             laser['current_breaks'] += 1
                             for _ in range(40):
@@ -603,8 +590,11 @@ while running:
             if 'hit_enemies' not in escano_ult.active_laser:
                 escano_ult.active_laser['hit_enemies'] = []
 
+            # Loop through all enemies
             for e in enemies:
+                # Create collision box for enemy
                 e_rect = pygame.Rect(e.x, e.y, 40, 40)
+                # Check if laser hits enemy and enemy is alive
                 if e.hp > 0 and laser_rect.colliderect(e_rect):
                     # I-check kung HINDI pa siya natatamaan ng laser na ito
                     if e not in escano_ult.active_laser['hit_enemies']:
@@ -890,7 +880,6 @@ while running:
         # DRAW PLAYER
         # ====================================================
         if escano_ult.is_charging:
-            # PALITAN ang variables na ito ng totoong pangalan mula sa assets.py mo!
             if escano_ult.charge_direction == "left":
                 world_surface.blit(break_block_left, (x + shake_x, y + shake_y))
             else:
