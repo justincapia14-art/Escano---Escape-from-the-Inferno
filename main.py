@@ -274,7 +274,7 @@ def reset_master_level():
 
     bosses = [
         Boss(0, 440),
-        Boss(780, 440)
+        # Boss(780, 440)
     ]
 
     breakable_bricks = [

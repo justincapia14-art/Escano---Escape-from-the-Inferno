@@ -65,7 +65,7 @@ def handle_vertical_collision(player_rect, platforms, y, velocity_y, player_heig
                 on_ground = True
                 baliktadrotate = "no"
             elif velocity_y < 0:
-                new_y = plat_rect.bottom
+                new_y = plat_rect.bottom # didikit siya sa ilalim ng block
                 new_vy = 0
                 baliktadrotate = "yes"
                 
@@ -128,7 +128,7 @@ class EscanoUltimate:
         self.is_charging = False
         self.charge_direction = None
         self.active_laser = None 
-        self.charge_particles = [] # DITO MASI-SAVE ANG ENERGY PARTICLES
+        self.charge_particles = [] #MASI-SAVE ANG ENERGY PARTICLES
 
     def update(self):
         # Update ng cooldown
@@ -175,7 +175,7 @@ class EscanoUltimate:
                 laser_y = player_y - 10
                 laser_height = 40
                 
-                # Para sa collision: Kunin lang ang exact center (para i-ignore ang sahig)
+                # exact center line ng laser para sa collision check
                 laser_center_y = player_y + (player_height // 2)
                 
                 if self.charge_direction == "right":
@@ -186,7 +186,7 @@ class EscanoUltimate:
                     for plat in platforms:
                         # Check kung tinatamaan ng center line ng laser yung wall block
                         if plat.top < laser_center_y < plat.bottom:
-                            # Kung nasa kanan ng player at mas malapit, putulin ang laser dito
+                            # Kung nasa kanan ng player at mas malapit, 
                             if plat.left > start_x and plat.left < end_x:
                                 end_x = plat.left
                                 
@@ -218,7 +218,7 @@ class EscanoUltimate:
                 
                 self.is_charging = False
                 self.charge_timer = 0
-                return True # Mag-ttrigger ng screen shake sa main
+                return True
             else:
                 # Na-cancel
                 self.is_charging = False
@@ -243,7 +243,7 @@ class EscanoUltimate:
                     'dy': random.uniform(-4, -1),                   
                     'lifetime': random.randint(15, 30),
                     'size': random.uniform(3, 6),
-                    # Kulay Apoy / Kuryente (Orange, Yellow, Yellow-White)
+                    # Kulay (Orange, Yellow, Yellow-White)
                     'color': random.choice([(255, 150, 0), (255, 200, 0), (255, 255, 100)]) 
                 })
 
