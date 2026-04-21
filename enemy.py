@@ -1,6 +1,7 @@
 #enemy.py
 import pygame
 import math
+import random
 from particle import Particle 
 
 class Enemy:
@@ -169,7 +170,10 @@ class Boss:
             pygame.image.load("enemy/Boss.png").convert_alpha(), (self.width, self.height)
         )
 
-    def update(self, player_rect, particles_list):
+        self.pulse_timer = 0
+        self.bullets = []
+
+    def update(self, player_rect, particles_list, platforms, roll_sound, boss_shoot_sound):
         if self.hp <= 0:
             self.is_dead = True
             return
@@ -180,7 +184,6 @@ class Boss:
         # Kapag magka-level ang Boss at Player sa Y-axis
         if abs(player_rect.centery - boss_centery) < 50:
             
-            # STATE 1: WAITING / COOLDOWN (Nakahinto)
             if self.state == "wait":
                 self.timer -= 1  # Bawasan ang cooldown timer
                 
@@ -188,16 +191,36 @@ class Boss:
                 if self.timer <= 0:
                     self.state = "roll"
                     self.timer = 90  # Gugulong siya ng 1.5 seconds (90 frames)
+
+                    if roll_sound:
+                        roll_sound.play()
             
-            # STATE 2: ROLLING / CHARGING (Sumusugod)
+           # ROLLING / CHARGING (Sumusugod)
             elif self.state == "roll":
-                # Sumunod sa X position ng player
+                # 1. I-save muna ang lumang position bago gumulong
+                old_x = self.x
+
+                # 2. Sumunod sa X position ng player
                 if player_rect.centerx < boss_centerx:
                     self.x -= self.speed
                     self.angle += 12  # Mas mabilis na ikot
                 elif player_rect.centerx > boss_centerx:
                     self.x += self.speed
                     self.angle -= 12  # Mas mabilis na ikot
+
+                # 3. Gawa ng Rect ng boss sa bago niyang position
+                boss_rect = pygame.Rect(self.x, self.y, self.width, self.height)
+
+                # 4. I-check kung may tinamaan na block (platform)
+                for plat in platforms:
+                    if boss_rect.colliderect(plat):
+                        self.x = old_x  # I-cancel ang galaw at wag lumusot
+                        
+                        # (Optional) Kung gusto mong mapatigil siya nang tuluyan pagkabangga sa pader,
+                        # tanggalin ang '#' sa dalawang line sa ibaba:
+                        # self.state = "wait"
+                        # self.timer = 180
+                        break
 
                 # Maglalabas ng particles habang gumugulong
                 particles_list.append(Particle(boss_centerx, self.y + self.height))
@@ -207,7 +230,23 @@ class Boss:
                 # Kapag tapos na siyang gumulong, babalik sa pagiging waiting
                 if self.timer <= 0:
                     self.state = "wait"
-                    self.timer = 180  # Balik ulit sa 2 seconds cooldown
+                    self.timer = 180  # Balik ulit sa cooldown
+                    
+                    # ==========================================
+                    # MAG-SHOOT NG 5 RANDOM BULLETS!
+                    # ==========================================
+                    if boss_shoot_sound:
+                        boss_shoot_sound.play()
+                        
+                    for _ in range(10):
+                        # Random angle (paikot sa boss)
+                        angle = random.uniform(0, 2 * math.pi)
+                        speed = random.uniform(1, 1) # Random speed para kalat
+                        
+                        b_dx = math.cos(angle) * speed
+                        b_dy = math.sin(angle) * speed
+                        
+                        self.bullets.append([boss_centerx, boss_centery, b_dx, b_dy])
         else:
             # KUNG UMALIS ANG PLAYER SA LINYA NIYA:
             # Titigil ang boss at babalik sa cooldown mode para ready ulit pagbalik ng player.
@@ -217,11 +256,31 @@ class Boss:
     def draw(self, screen):
         if self.hp <= 0:
             return
-            
-        # I-rotate ang image
-        rotated_img = pygame.transform.rotate(self.image, self.angle)
+
+        # Update the timer para gumalaw ang animation ng ilaw
+        self.pulse_timer += 0.05  # Bilis ng pag-pulse ng ilaw
+
+        # ==========================================================
+        # 2. PULSING RED LIGHT SA LIKOD NG BOSS
+        # ==========================================================
+        base_radius = int(self.width * 0.8) # Normal size ng ilaw
         
-        # Kunin ang bagong center para hindi mag-wobble ang bilog
+        # math.sin para mag-fluctuate ang laki ng ilaw (lalaki at liliit ng 10 pixels)
+        pulse_offset = math.sin(self.pulse_timer) * 10 
+        light_radius = int(base_radius + pulse_offset)
+        
+        if light_radius > 0:
+            light_surface = pygame.Surface((light_radius * 2, light_radius * 2), pygame.SRCALPHA)
+            pygame.draw.circle(light_surface, (200, 0, 0, 100), (light_radius, light_radius), light_radius)
+            
+            # I-center ang ilaw sa likod ng Boss
+            light_x = self.x + self.width // 2 - light_radius
+            light_y = self.y + self.height // 2 - light_radius
+            screen.blit(light_surface, (light_x, light_y))
+        # ==========================================================
+
+        # NORMAL NA DRAWING NG BOSS (Hindi na mag-iiba ang size)
+        rotated_img = pygame.transform.rotate(self.image, self.angle)
         new_rect = rotated_img.get_rect(center=(self.x + self.width // 2, self.y + self.height // 2))
         screen.blit(rotated_img, new_rect.topleft)
 
@@ -234,6 +293,40 @@ class Boss:
             # Red/Green HP bar sa taas ng Boss
             pygame.draw.rect(screen, (255, 0, 0), (self.x, self.y - 15, bar_width, bar_height))
             pygame.draw.rect(screen, (0, 255, 0), (self.x, self.y - 15, bar_width * ratio, bar_height))
+
+    
+    def update_bullets(self, player_rect, player_hp, hit_cooldown, p_x, p_y, natamaan_fire):
+        # move bullets
+        for bullet in self.bullets:
+            bullet[0] += bullet[2]
+            bullet[1] += bullet[3]
+
+        # check collision ng bala sa player
+        for bullet in self.bullets[:]:
+            b_rect = pygame.Rect(bullet[0], bullet[1], 10, 10)
+
+            if b_rect.colliderect(player_rect):
+                if hit_cooldown <= 0:
+                    natamaan_fire.play()
+                    player_hp -= 15  # Damage ng boss bullet
+                    hit_cooldown = 30
+
+                    # knockback
+                    if player_rect.centerx < bullet[0]:
+                        p_x -= 30
+                    else:
+                        p_x += 30
+                    p_y -= 10
+
+                if bullet in self.bullets:
+                    self.bullets.remove(bullet)
+                    
+            # Kung lumabas sa screen yung bala, burahin na
+            elif bullet[0] < 0 or bullet[0] > 800 or bullet[1] < 0 or bullet[1] > 500:
+                if bullet in self.bullets:
+                    self.bullets.remove(bullet)
+                    
+        return player_hp, hit_cooldown, p_x, p_y
 
 
 class Boss1:

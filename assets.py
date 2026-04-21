@@ -20,6 +20,8 @@ charging = pygame.mixer.Sound("music/charging.wav")
 ultimate_sound = pygame.mixer.Sound("music/ult_shoot.wav")
 defeat_sound = pygame.mixer.Sound("music/defeat.wav")
 master_music = pygame.mixer.Sound("music/master_music.wav")
+roll_sound = pygame.mixer.Sound("music/Rolling.wav")
+boss_shoot_sound = pygame.mixer.Sound("music/enemy_shoot_sound.wav")
 
 # --- Backgrounds ---
 background_menu = pygame.image.load("background/background menu.png").convert()

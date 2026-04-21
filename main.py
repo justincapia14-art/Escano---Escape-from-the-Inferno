@@ -274,7 +274,7 @@ def reset_master_level():
 
     bosses = [
         Boss(0, 440),
-        # Boss(780, 440)
+        Boss(780, 440)
     ]
 
     breakable_bricks = [
@@ -1480,8 +1480,37 @@ while running:
         for b in bosses:
             b_rect = pygame.Rect(b.x, b.y, b.width, b.height)
             
-            # Update position at mag-spawn ng particles
-            b.update(player_rect, particles)
+            # Update position, particles, platforms, sounds
+            b.update(player_rect, particles, platforms, roll_sound, boss_shoot_sound)
+            
+            # Update BOSS BULLETS (Damage at Galaw)
+            player_hp, hit_cooldown, x, y = b.update_bullets(player_rect, player_hp, hit_cooldown, x, y, natamaan_fire)
+
+            # COLLISION SA PLAYER (Damage at Knockback)
+            if b.hp > 0 and player_rect.colliderect(b_rect):
+                if hit_cooldown <= 0:
+                    print("Natamaan ng Boss!")
+                    natamaan_fire.play()
+                    
+                    player_hp -= 30 
+                    hit_cooldown = 30
+                    
+                    # Knockback logic
+                    if player_rect.centerx < b_rect.centerx:
+                        x -= 60
+                    else:
+                        x += 60
+                        
+                    y -= 20
+                    velocity_y = 0
+            
+            # boss and hp bar draw
+            b.draw(world_surface)
+            b.draw_hp_bar(world_surface)
+            
+            # 3. I-DRAW ANG BALA NG BOSS (Gagawin nating color Orange)
+            for bullet in b.bullets:
+                pygame.draw.circle(world_surface, (255, 150, 0), (int(bullet[0]), int(bullet[1])), 6)
             
             # COLLISION SA PLAYER (Damage at Knockback)
             if b.hp > 0 and player_rect.colliderect(b_rect):

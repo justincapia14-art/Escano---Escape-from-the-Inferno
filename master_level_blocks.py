@@ -23,9 +23,9 @@ MAZE_MAP = [
     "   BB                                   ",
     "                                        ",
     "                                        ",
-    "BBB                                  BBB",
-    "                                       B",
-    "                                        ",
+    "BBB                  B               BBB",
+    "                     B                 B",
+    "                     B                  ",
     "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
 ]
 
