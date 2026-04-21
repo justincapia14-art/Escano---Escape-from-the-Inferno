@@ -541,6 +541,7 @@ while running:
         screen.blit(victory_bg, (0, 0))
 
     elif game_state == "defeat":
+        master_music.fadeout(1000)
         exit_music.fadeout(1000)
         pygame.mixer.music.fadeout(1000)
         
@@ -1416,10 +1417,10 @@ while running:
             world_surface.blit(close_door, (100, 82))
 
         # environment no collision for this
-        world_surface.blit(sign1, (380, 440))
-        world_surface.blit(sign1, (460, 440))
-        world_surface.blit(sign2, (540, 440))
-        world_surface.blit(stone1, (200, 320))
+        # world_surface.blit(sign1, (380, 440))
+        # world_surface.blit(sign1, (460, 440))
+        # world_surface.blit(sign2, (540, 440))
+        # world_surface.blit(stone1, (200, 320))
 
         # lutang effect
         time += 0.08
