@@ -325,3 +325,141 @@ class Boss:
                     self.bullets.remove(bullet)
                     
         return player_hp, hit_cooldown, p_x, p_y
+
+
+class BigBoss:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.start_x = x
+        self.start_y = y
+        
+        self.width = 100
+        self.height = 100
+        
+        self.max_hp = 1500  
+        self.hp = self.max_hp
+        self.is_dead = False
+        
+        self.speed = 0.3
+        
+        self.image = pygame.transform.scale(
+            pygame.image.load("enemy/BigBoss.png").convert_alpha(), (self.width, self.height)
+        )
+
+        self.bullets = []
+        self.shoot_timer = 0
+        self.float_timer = 0
+        self.aura_timer = 0
+
+    def update(self, player_rect, boss_shoot_sound):
+        if self.hp <= 0:
+            self.is_dead = True
+            return
+
+        self.float_timer += 0.1  
+        self.aura_timer += 0.2   
+
+        boss_centerx = self.x + self.width // 2
+        boss_centery = self.y + self.height // 2
+        
+        dx = player_rect.centerx - boss_centerx
+        dy = player_rect.centery - boss_centery
+        distance = math.sqrt(dx**2 + dy**2)
+
+        # SUSUNOD KAPAG WITHIN 200 PIXELS
+        if distance < 200 and distance > 0:
+            self.x += (dx / distance) * self.speed
+            self.y += (dy / distance) * self.speed
+
+            # SHOOTING 20 BULLETS LOGIC
+            self.shoot_timer += 1
+            if self.shoot_timer >= 90:  
+                self.shoot_timer = 0
+                if boss_shoot_sound:
+                    boss_shoot_sound.play()
+                
+                for _ in range(20):
+                    angle = random.uniform(0, 2 * math.pi)
+                    b_speed = random.uniform(2, 4) 
+                    
+                    b_dx = math.cos(angle) * b_speed
+                    b_dy = math.sin(angle) * b_speed
+                    
+                    self.bullets.append([boss_centerx, boss_centery, b_dx, b_dy])
+        else:
+            self.shoot_timer = 0 # Tigil tira kapag lumayo
+            
+            # --- PARA BUMALIK SA DATING PWESTO ---
+            dx_start = self.start_x - self.x
+            dy_start = self.start_y - self.y
+            dist_start = math.sqrt(dx_start**2 + dy_start**2)
+
+            # Kapag malayo pa siya sa original pwesto niya, babalik siya
+            if dist_start > 2: # May maliit na buffer para hindi mag-jitter/manginig
+                # x2 yung speed para mabilis siyang bumalik
+                self.x += (dx_start / dist_start) * (self.speed * 2)
+                self.y += (dy_start / dist_start) * (self.speed * 2)
+            else:
+                # Kapag sobrang lapit na, lock na eksakto sa original pwesto
+                self.x = self.start_x
+                self.y = self.start_y
+
+    def draw(self, screen):
+        if self.hp <= 0:
+            return
+
+        center_x = self.x + self.width // 2
+        float_y = math.sin(self.float_timer) * 10
+        center_y = self.y + float_y + self.height // 2
+
+        # INTENSE AURA
+        for i in range(3, 0, -1):
+            pulse = math.sin(self.aura_timer + i) * 15
+            radius = int((self.width // 1.2) + (i * 15) + pulse)
+            
+            if radius > 0:
+                aura_surface = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+                pygame.draw.circle(aura_surface, (180, 0, 255, 40), (radius, radius), radius)
+                screen.blit(aura_surface, (center_x - radius, center_y - radius))
+
+        screen.blit(self.image, (self.x, self.y + float_y))
+
+    def draw_hp_bar(self, screen):
+        if self.hp > 0:
+            float_y = math.sin(self.float_timer) * 10
+            bar_width = self.width
+            bar_height = 5
+            ratio = self.hp / self.max_hp
+            
+            pygame.draw.rect(screen, (255, 0, 0), (self.x, self.y + float_y - 15, bar_width, bar_height))
+            pygame.draw.rect(screen, (0, 255, 0), (self.x, self.y + float_y - 15, bar_width * ratio, bar_height))
+
+    def update_bullets(self, player_rect, player_hp, hit_cooldown, p_x, p_y, natamaan_fire):
+        for bullet in self.bullets:
+            bullet[0] += bullet[2]
+            bullet[1] += bullet[3]
+
+        for bullet in self.bullets[:]:
+            b_rect = pygame.Rect(bullet[0], bullet[1], 10, 10)
+
+            if b_rect.colliderect(player_rect):
+                if hit_cooldown <= 0:
+                    natamaan_fire.play()
+                    player_hp -= 20  
+                    hit_cooldown = 30
+
+                    if player_rect.centerx < bullet[0]:
+                        p_x -= 30
+                    else:
+                        p_x += 30
+                    p_y -= 10
+
+                if bullet in self.bullets:
+                    self.bullets.remove(bullet)
+                    
+            elif bullet[0] < 0 or bullet[0] > 800 or bullet[1] < 0 or bullet[1] > 500:
+                if bullet in self.bullets:
+                    self.bullets.remove(bullet)
+                    
+        return player_hp, hit_cooldown, p_x, p_y

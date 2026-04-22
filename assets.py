@@ -105,6 +105,8 @@ stone1 = pygame.transform.scale(stone1, (80, 80))
 close_door = pygame.image.load("background/close_door.png").convert_alpha()
 open_door = pygame.image.load("background/open_door.png").convert_alpha()
 
+bigBoss = pygame.image.load("enemy/BigBoss.png").convert_alpha()
+
 # --- Collectibles ---
 key1 = pygame.image.load("Collectable Object/Key_02.png").convert_alpha()
 key1 = pygame.transform.scale(key1, (20, 10))

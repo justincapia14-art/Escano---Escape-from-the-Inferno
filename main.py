@@ -2,7 +2,7 @@ import pygame
 import sys
 import random
 import math
-from enemy import Enemy, Boss
+from enemy import Enemy, Boss, BigBoss
 from particle import Particle
 from hindilalabas import apply_screen_bounds
 from camera import draw_zoomed_camera
@@ -244,6 +244,7 @@ def reset_master_level():
     global breakable_bricks
     global bosses
     global door_rect
+    global big_bosses
 
     master_keys = [(0, 200), (0, 200), (0, 200)]
     master_coins = [(0, 0), (0, 0), (0, 0)]
@@ -279,6 +280,10 @@ def reset_master_level():
     bosses = [
         Boss(0, 300),
         Boss(780, 440)
+    ]
+
+    big_bosses = [
+        BigBoss(500, 20)
     ]
 
     breakable_bricks = [
@@ -1306,6 +1311,19 @@ while running:
                         for _ in range(100):  
                             particles.append(Particle(b.x + b.width//2, b.y + b.height//2))
                     break
+
+            for bb in big_bosses:
+                bb_rect = pygame.Rect(bb.x, bb.y, bb.width, bb.height)
+                if bb.hp > 0 and bullet_rect.colliderect(bb_rect):
+                    bb.hp -= 15  # Damage ng baril sa bigboss
+                    if bullet in player_bullets:
+                        player_bullets.remove(bullet)
+                        
+                    if bb.hp <= 0:
+                        enemy_dead_sound.play()
+                        for _ in range(150):  # Mas madaming particles pag namatay bigboss
+                            particles.append(Particle(bb.x + bb.width//2, bb.y + bb.height//2))
+                    break
             
             #hindi na tatagos bala ng player sa walls
             bullet_hit_wall = False
@@ -1539,6 +1557,47 @@ while running:
             b.draw_hp_bar(world_surface)
         # ====================================================
 
+        # ====================================================
+        # BIGBOSS UPDATE, COLLISION, & DRAW
+        # ====================================================
+        for bb in big_bosses:
+            bb_rect = pygame.Rect(bb.x, bb.y, bb.width, bb.height)
+            
+            # Update position, chasing, shooting
+            bb.update(player_rect, boss_shoot_sound)
+            
+            # Update BIGBOSS BULLETS (Damage at Galaw)
+            player_hp, hit_cooldown, x, y = bb.update_bullets(player_rect, player_hp, hit_cooldown, x, y, natamaan_fire)
+
+            # COLLISION NG PLAYER SA KATAWAN NG BIGBOSS
+            if bb.hp > 0 and player_rect.colliderect(bb_rect):
+                if hit_cooldown <= 0:
+                    print("Natamaan ng BigBoss!")
+                    natamaan_fire.play()
+                    
+                    player_hp -= 40  # Matinding damage pag nadikitan
+                    hit_cooldown = 30
+                    
+                    # Knockback logic
+                    if player_rect.centerx < bb_rect.centerx:
+                        x -= 60
+                    else:
+                        x += 60
+                        
+                    y -= 20
+                    velocity_y = 0
+
+            # I-draw si BigBoss at HP bar niya
+            bb.draw(world_surface)
+            bb.draw_hp_bar(world_surface)
+            
+            # I-draw ang 20 Bullets ng BigBoss (Gagawin nating Violet/Pink na may puti)
+            for bullet in bb.bullets:
+                pygame.draw.circle(world_surface, (255, 100, 255), (int(bullet[0]), int(bullet[1])), 7)
+                pygame.draw.circle(world_surface, (255, 255, 255), (int(bullet[0]), int(bullet[1])), 3)
+
+        # ====================================================
+
         # animation ng pera
         frame_index += animation_speed
         if frame_index >= len(coin_frames):
@@ -1639,7 +1698,7 @@ while running:
             cam_shake_y = random.randint(-10, 10)
             screen_shake_frames -= 1
 
-        draw_zoomed_camera(screen, world_surface, x + cam_shake_x, y + cam_shake_y, player_width, player_height, width, height, zoom=1)
+        draw_zoomed_camera(screen, world_surface, x + cam_shake_x, y + cam_shake_y, player_width, player_height, width, height, zoom=2)
 
         if player_rect.colliderect(door_rect):
             screen.blit(enter, (0, 0 + offset))
