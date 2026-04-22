@@ -242,7 +242,7 @@ def reset_master_level():
     global breakable_bricks
     global bosses
 
-    master_keys = [(0, 0), (0, 0), (0, 0)]
+    master_keys = [(400, 460), (780, 460), (0, 0)]
     master_coins = [(0, 0), (0, 0), (0, 0)]
 
     setup_level_items(master_keys, master_coins)
@@ -266,7 +266,6 @@ def reset_master_level():
     exit_fade_done = False
 
     enemies = [
-        Enemy(200, 440),
         Enemy(260, 440),
         Enemy(320, 440),
         Enemy(380, 440)
@@ -278,7 +277,7 @@ def reset_master_level():
     ]
 
     breakable_bricks = [
-                    # pygame.Rect(780, 320, 20, 20),
+                    pygame.Rect(420, 460, 20, 20),
                     # pygame.Rect(780, 300, 20, 20),
                     # pygame.Rect(760, 300, 20, 20),
                     # pygame.Rect(760, 320, 20, 20),
