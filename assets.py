@@ -27,6 +27,18 @@ boss_shoot_sound = pygame.mixer.Sound("music/enemy_shoot_sound.wav")
 background_menu = pygame.image.load("background/background menu.png").convert()
 background_menu_scaled = pygame.transform.scale(background_menu, (800, 510))
 
+grass_02 = pygame.image.load("Environment/grass_02.png").convert_alpha()
+grass_02 = pygame.transform.scale(grass_02, (60, 60))
+
+grass_01 = pygame.image.load("Environment/grass_01.png").convert_alpha()
+grass_01 = pygame.transform.scale(grass_01, (60, 60))
+
+rock_03 = pygame.image.load("Environment/rock_03.png").convert_alpha()
+rock_03 = pygame.transform.scale(rock_03, (60, 60))
+
+sign_04 = pygame.image.load("Environment/Sign_04.png").convert_alpha()
+sign_04 = pygame.transform.scale(sign_04, (40, 40))
+
 background = pygame.image.load("background/background.png")
 background = pygame.transform.scale(background, (800, 510))
 
@@ -101,6 +113,15 @@ sign2 = pygame.transform.scale(sign2, (20, 20))
 
 stone1 = pygame.image.load("Environment/Decor_Statue.png").convert_alpha()
 stone1 = pygame.transform.scale(stone1, (80, 80))
+
+flipped_stone1 = pygame.transform.flip(stone1, True, False)
+
+lion = pygame.image.load("Environment/Lion_Bas_Relief.png").convert_alpha()
+lion = pygame.transform.scale(lion, (80, 80))
+
+little_wreckage = pygame.image.load("Environment/Little_Wreckage.png").convert_alpha()
+little_wreckage = pygame.transform.scale(little_wreckage, (80, 80))
+
 
 close_door = pygame.image.load("background/close_door.png").convert_alpha()
 open_door = pygame.image.load("background/open_door.png").convert_alpha()

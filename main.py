@@ -143,7 +143,7 @@ def draw_and_check_items(surface, player_rect, offset, current_coin_frame):
     # Dito na lahat: Collision at Drawing para malinis sa main loop
     global keys_collected, coin_count
 
-    # 1. PROSESO PARA SA KEYS
+    #  PROSESO PARA SA KEYS
     for i in range(len(level_keys)):
         if not keys_collected_status[i]:
             # Gumawa ng temporary rect para sa "lutang" (offset) effect
@@ -246,7 +246,7 @@ def reset_master_level():
     global door_rect
     global big_bosses
 
-    master_keys = [(0, 200), (0, 200), (0, 200)]
+    master_keys = [(780, 460), (390, 460), (0, 200)]
     master_coins = [(0, 0), (0, 0), (0, 0)]
 
     door_rect = pygame.Rect(40, 140, 80, 80)
@@ -261,7 +261,7 @@ def reset_master_level():
 
     # player reset
     x = 40
-    y = 40
+    y = 440
     velocity_y = 0
     player_angle = 0
 
@@ -279,11 +279,11 @@ def reset_master_level():
 
     bosses = [
         Boss(0, 300),
-        Boss(780, 440)
+        Boss(660, 440)
     ]
 
     big_bosses = [
-        BigBoss(500, 20)
+        BigBoss(320, 20)
     ]
 
     breakable_bricks = [
@@ -292,7 +292,8 @@ def reset_master_level():
                     # pygame.Rect(760, 300, 20, 20),
                     # pygame.Rect(760, 320, 20, 20),
                     
-                    # *[pygame.Rect(i, 380, 20, 20) for i in range(140, 280, 20)],
+                    *[pygame.Rect(i, 440, 20, 20) for i in range(700, 800, 20)],
+                    *[pygame.Rect(i, 460, 20, 20) for i in range(700, 800, 20)],
                     # *[pygame.Rect(i, 360, 20, 20) for i in range(180, 280, 20)],
                     # *[pygame.Rect(i, 340, 20, 20) for i in range(180, 280, 20)],
                     # *[pygame.Rect(i, 320, 20, 20) for i in range(0, 280, 20)]
@@ -1439,7 +1440,7 @@ while running:
                 particles.append(Particle(x + player_width // 2, y + player_height))
 
             # nababawasan buhay kapag naglalakad
-            player_hp -= 0.03
+            player_hp -= 0.01
             
             if player_hp < 0:
                 player_hp = 0
@@ -1454,6 +1455,17 @@ while running:
             world_surface.blit(close_door, (40, 140))
 
         # environment no collision for this
+        world_surface.blit(grass_02, (100, 440))
+        world_surface.blit(grass_02, (160, 440))
+        world_surface.blit(grass_01, (0, 380))
+        world_surface.blit(flipped_stone1, (300, 140))
+        world_surface.blit(rock_03, (740, 235))
+        world_surface.blit(sign_04, (600, 180))
+        world_surface.blit(sign_04, (560, 180))
+        world_surface.blit(sign_04, (520, 180))
+        world_surface.blit(lion, (490, 260))
+        world_surface.blit(little_wreckage, (340, 260))
+
         # world_surface.blit(sign1, (380, 440))
         # world_surface.blit(sign1, (460, 440))
         # world_surface.blit(sign2, (540, 440))
