@@ -91,7 +91,6 @@ level_keys = []
 keys_collected_status = []
 keys_collected = 0
 TOTAL_KEYS = 3
-door_rect = pygame.Rect(80, 82, 80, 80)
 
 # life positions and collection status
 life_rects_beginner = [
@@ -183,9 +182,12 @@ def reset_beginner_level():
     global enemies, player_bullets, shoot_anim_timer
     global lives_collected
     global breakable_bricks
+    global door_rect
 
     beginner_keys = [(180, 380), (780, 320), (425, 154)]
     beginner_coins = [(420, 300), (420, 320), (440, 320), (440, 300), (460, 320), (460, 300)]
+
+    door_rect = pygame.Rect(80, 82, 80, 80)
 
     setup_level_items(beginner_keys, beginner_coins)
 
@@ -241,9 +243,12 @@ def reset_master_level():
     global lives_collected
     global breakable_bricks
     global bosses
+    global door_rect
 
-    master_keys = [(400, 460), (780, 460), (0, 0)]
+    master_keys = [(0, 200), (0, 200), (0, 200)]
     master_coins = [(0, 0), (0, 0), (0, 0)]
+
+    door_rect = pygame.Rect(40, 140, 80, 80)
 
     setup_level_items(master_keys, master_coins)
 
@@ -254,8 +259,8 @@ def reset_master_level():
     is_playing_charge_sound = False
 
     # player reset
-    x = 0
-    y = 460
+    x = 40
+    y = 40
     velocity_y = 0
     player_angle = 0
 
@@ -1011,7 +1016,7 @@ while running:
             cam_shake_y = random.randint(-10, 10)
             screen_shake_frames -= 1
 
-        draw_zoomed_camera(screen, world_surface, x + cam_shake_x, y + cam_shake_y, player_width, player_height, width, height, zoom=2)
+        draw_zoomed_camera(screen, world_surface, x + cam_shake_x, y + cam_shake_y, player_width, player_height, width, height, zoom=1)
 
         if player_rect.colliderect(door_rect):
             screen.blit(enter, (0, 0 + offset))
@@ -1411,9 +1416,9 @@ while running:
 
         # exit
         if keys_collected == 3:
-            world_surface.blit(open_door, (60, 82))
+            world_surface.blit(open_door, (5, 145))
         else:
-            world_surface.blit(close_door, (100, 82))
+            world_surface.blit(close_door, (40, 140))
 
         # environment no collision for this
         # world_surface.blit(sign1, (380, 440))
@@ -1634,7 +1639,7 @@ while running:
             cam_shake_y = random.randint(-10, 10)
             screen_shake_frames -= 1
 
-        draw_zoomed_camera(screen, world_surface, x + cam_shake_x, y + cam_shake_y, player_width, player_height, width, height, zoom=2)
+        draw_zoomed_camera(screen, world_surface, x + cam_shake_x, y + cam_shake_y, player_width, player_height, width, height, zoom=1)
 
         if player_rect.colliderect(door_rect):
             screen.blit(enter, (0, 0 + offset))
