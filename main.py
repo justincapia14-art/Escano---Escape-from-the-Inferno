@@ -254,8 +254,8 @@ def reset_master_level():
     is_playing_charge_sound = False
 
     # player reset
-    x = 400
-    y = 440
+    x = 0
+    y = 460
     velocity_y = 0
     player_angle = 0
 
@@ -266,14 +266,14 @@ def reset_master_level():
     exit_fade_done = False
 
     enemies = [
-        Enemy(0, 0),
-        Enemy(0, 0),
-        Enemy(0, 0),
-        Enemy(0, 0)
+        Enemy(200, 440),
+        Enemy(260, 440),
+        Enemy(320, 440),
+        Enemy(380, 440)
     ]
 
     bosses = [
-        Boss(0, 440),
+        Boss(0, 300),
         Boss(780, 440)
     ]
 
@@ -1247,7 +1247,7 @@ while running:
                 b_rect = pygame.Rect(b.x, b.y, b.width, b.height)
                 if b.hp > 0 and laser_rect.colliderect(b_rect):
                     if b not in escano_ult.active_laser['hit_bosses']:
-                        b.hp -= 60  # Damage ng Ultimate sa boss
+                        b.hp -= 200  # Damage ng Ultimate sa boss
                         escano_ult.active_laser['hit_bosses'].append(b)
                         
                         if b.hp <= 0:

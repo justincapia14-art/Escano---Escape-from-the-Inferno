@@ -181,10 +181,12 @@ class Boss:
         boss_centerx = self.x + self.width // 2
         boss_centery = self.y + self.height // 2
 
-        # Kapag magka-level ang Boss at Player sa Y-axis
-        if abs(player_rect.centery - boss_centery) < 50:
-            
-            if self.state == "wait":
+        # ==========================================
+        # BAGONG LOGIC PARA SA STATE MACHINE NG BOSS
+        # ==========================================
+        if self.state == "wait":
+            # Kapag magka-level ang Boss at Player sa Y-axis, mag-uumpisa bumawas ang timer
+            if abs(player_rect.centery - boss_centery) < 50:
                 self.timer -= 1  # Bawasan ang cooldown timer
                 
                 # Kapag 0 na ang wait timer, oras na para sumugod!
@@ -194,64 +196,60 @@ class Boss:
 
                     if roll_sound:
                         roll_sound.play()
+            else:
+                # KUNG UMALIS ANG PLAYER SA LINYA NIYA BAGO PA SUMUGOD:
+                # Balik sa cooldown mode para ready ulit pagbalik ng player.
+                self.timer = 120
+
+        elif self.state == "roll":
+            # ==========================================
+            # ROLLING STATE - TULOY ANG IKOT KAHIT TUMALON
+            # ==========================================
+            # 1. I-save muna ang lumang position bago gumulong
+            old_x = self.x
+
+            # 2. Sumunod sa X position ng player
+            if player_rect.centerx < boss_centerx:
+                self.x -= self.speed
+                self.angle += 12  # Mas mabilis na ikot
+            elif player_rect.centerx > boss_centerx:
+                self.x += self.speed
+                self.angle -= 12  # Mas mabilis na ikot
+
+            # 3. Gawa ng Rect ng boss sa bago niyang position
+            boss_rect = pygame.Rect(self.x, self.y, self.width, self.height)
+
+            # 4. I-check kung may tinamaan na block (platform)
+            for plat in platforms:
+                if boss_rect.colliderect(plat):
+                    self.x = old_x  # I-cancel ang galaw at wag lumusot
+                    break
+
+            # Maglalabas ng particles habang gumugulong
+            particles_list.append(Particle(boss_centerx, self.y + self.height))
             
-           # ROLLING / CHARGING (Sumusugod)
-            elif self.state == "roll":
-                # 1. I-save muna ang lumang position bago gumulong
-                old_x = self.x
-
-                # 2. Sumunod sa X position ng player
-                if player_rect.centerx < boss_centerx:
-                    self.x -= self.speed
-                    self.angle += 12  # Mas mabilis na ikot
-                elif player_rect.centerx > boss_centerx:
-                    self.x += self.speed
-                    self.angle -= 12  # Mas mabilis na ikot
-
-                # 3. Gawa ng Rect ng boss sa bago niyang position
-                boss_rect = pygame.Rect(self.x, self.y, self.width, self.height)
-
-                # 4. I-check kung may tinamaan na block (platform)
-                for plat in platforms:
-                    if boss_rect.colliderect(plat):
-                        self.x = old_x  # I-cancel ang galaw at wag lumusot
-                        
-                        # (Optional) Kung gusto mong mapatigil siya nang tuluyan pagkabangga sa pader,
-                        # tanggalin ang '#' sa dalawang line sa ibaba:
-                        # self.state = "wait"
-                        # self.timer = 180
-                        break
-
-                # Maglalabas ng particles habang gumugulong
-                particles_list.append(Particle(boss_centerx, self.y + self.height))
+            self.timer -= 1  # Bawasan ang rolling timer
+            
+            # Kapag tapos na siyang gumulong, babalik sa pagiging waiting at magsho-shoot
+            if self.timer <= 0:
+                self.state = "wait"
+                self.timer = 180  # Balik ulit sa cooldown
                 
-                self.timer -= 1  # Bawasan ang rolling timer
-                
-                # Kapag tapos na siyang gumulong, babalik sa pagiging waiting
-                if self.timer <= 0:
-                    self.state = "wait"
-                    self.timer = 180  # Balik ulit sa cooldown
+                # ==========================================
+                # MAG-SHOOT NG MGA BULLETS PAGKATAPOS GUMULONG
+                # ==========================================
+                if boss_shoot_sound:
+                    boss_shoot_sound.play()
                     
-                    # ==========================================
-                    # MAG-SHOOT NG 5 RANDOM BULLETS!
-                    # ==========================================
-                    if boss_shoot_sound:
-                        boss_shoot_sound.play()
-                        
-                    for _ in range(10):
-                        # Random angle (paikot sa boss)
-                        angle = random.uniform(0, 2 * math.pi)
-                        speed = random.uniform(1, 1) # Random speed para kalat
-                        
-                        b_dx = math.cos(angle) * speed
-                        b_dy = math.sin(angle) * speed
-                        
-                        self.bullets.append([boss_centerx, boss_centery, b_dx, b_dy])
-        else:
-            # KUNG UMALIS ANG PLAYER SA LINYA NIYA:
-            # Titigil ang boss at babalik sa cooldown mode para ready ulit pagbalik ng player.
-            self.state = "wait"
-            self.timer = 120
+                for _ in range(10):
+                    # Random angle (paikot sa boss)
+                    angle = random.uniform(0, 2 * math.pi)
+                    speed = random.uniform(1, 1) # Random speed para kalat
+                    
+                    b_dx = math.cos(angle) * speed
+                    b_dy = math.sin(angle) * speed
+                    
+                    self.bullets.append([boss_centerx, boss_centery, b_dx, b_dy])
 
     def draw(self, screen):
         if self.hp <= 0:
