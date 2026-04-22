@@ -374,14 +374,14 @@ class BigBoss:
 
             # SHOOTING 20 BULLETS LOGIC
             self.shoot_timer += 1
-            if self.shoot_timer >= 90:  
+            if self.shoot_timer >= 150:  
                 self.shoot_timer = 0
                 if boss_shoot_sound:
                     boss_shoot_sound.play()
                 
                 for _ in range(20):
                     angle = random.uniform(0, 2 * math.pi)
-                    b_speed = random.uniform(2, 4) 
+                    b_speed = random.uniform(1, 2) 
                     
                     b_dx = math.cos(angle) * b_speed
                     b_dy = math.sin(angle) * b_speed

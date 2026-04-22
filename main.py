@@ -1264,6 +1264,21 @@ while running:
                             for _ in range(100):  
                                 particles.append(Particle(b.x + b.width//2, b.y + b.height//2))
 
+            if 'hit_big_bosses' not in escano_ult.active_laser:
+                escano_ult.active_laser['hit_big_bosses'] = []
+
+                for bb in big_bosses:
+                    bb_rect = pygame.Rect(bb.x, bb.y, bb.width, bb.height)
+                    if bb.hp > 0 and laser_rect.colliderect(bb_rect):
+                        if bb not in escano_ult.active_laser['hit_big_bosses']:
+                            bb.hp -= 200  # Damage ng Ultimate sa big boss
+                            escano_ult.active_laser['hit_big_bosses'].append(bb)
+                            
+                            if bb.hp <= 0:
+                                enemy_dead_sound.play()
+                                for _ in range(150):  
+                                    particles.append(Particle(bb.x + bb.width//2, bb.y + bb.height//2))
+
         # ====================================================
         # PHYSICS INTEGRATION
         # ====================================================
