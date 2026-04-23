@@ -22,6 +22,8 @@ defeat_sound = pygame.mixer.Sound("music/defeat.wav")
 master_music = pygame.mixer.Sound("music/master_music.wav")
 roll_sound = pygame.mixer.Sound("music/Rolling.wav")
 boss_shoot_sound = pygame.mixer.Sound("music/enemy_shoot_sound.wav")
+main_menu_music = pygame.mixer.Sound("music/main_menu.wav")
+main_menu_music.set_volume(0.5)
 
 # --- Backgrounds ---
 background_menu = pygame.image.load("background/background menu.png").convert()
