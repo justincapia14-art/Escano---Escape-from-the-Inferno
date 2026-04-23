@@ -52,6 +52,9 @@ exit_now = pygame.image.load("background/exit_now.png").convert_alpha()
 victory_bg = pygame.image.load("background/victory.png").convert_alpha()
 defeat = pygame.image.load("background/defeat.png").convert_alpha()
 
+how_to_play = pygame.image.load("background/how to play.png").convert_alpha()
+how_to_play = pygame.transform.scale(how_to_play, (800, 500))
+
 black = pygame.image.load("background/black.png").convert_alpha()
 black = pygame.transform.scale(black, (800, 500))
 black.set_alpha(128)

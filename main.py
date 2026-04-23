@@ -246,7 +246,7 @@ def reset_master_level():
     global door_rect
     global big_bosses
 
-    master_keys = [(780, 460), (390, 460), (0, 200)]
+    master_keys = [(780, 460), (390, 460), (760, 80)]
     master_coins = [(0, 0), (0, 0), (0, 0)]
 
     door_rect = pygame.Rect(40, 140, 80, 80)
@@ -261,7 +261,7 @@ def reset_master_level():
 
     # player reset
     x = 40
-    y = 440
+    y = 460
     velocity_y = 0
     player_angle = 0
 
@@ -294,8 +294,11 @@ def reset_master_level():
                     
                     *[pygame.Rect(i, 440, 20, 20) for i in range(700, 800, 20)],
                     *[pygame.Rect(i, 460, 20, 20) for i in range(700, 800, 20)],
-                    # *[pygame.Rect(i, 360, 20, 20) for i in range(180, 280, 20)],
-                    # *[pygame.Rect(i, 340, 20, 20) for i in range(180, 280, 20)],
+                    *[pygame.Rect(i, 80, 20, 20) for i in range(700, 800, 20)],
+                    *[pygame.Rect(i, 60, 20, 20) for i in range(700, 800, 20)],
+                    *[pygame.Rect(i, 460, 20, 20) for i in range(60, 200, 20)],
+                    *[pygame.Rect(i, 440, 20, 20) for i in range(60, 200, 20)],
+                    *[pygame.Rect(i, 420, 20, 20) for i in range(60, 200, 20)],
                     # *[pygame.Rect(i, 320, 20, 20) for i in range(0, 280, 20)]
 ]
     
@@ -349,31 +352,26 @@ while running:
         if event.type == pygame.MOUSEWHEEL and game_state in ["level_beginner", "level_master"]:
             current_skill_index = (current_skill_index + event.y) % len(skills_list)
             current_skill = skills_list[current_skill_index]
-            skill_ui_timer = 120  # Ipakita ang text sa loob ng 2 seconds (120 frames)
+            skill_ui_timer = 120 
             click_sound.play()
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if game_state == "victory":
-                reset_beginner_level()
-                game_state = "menu"
-            if game_state == "defeat":
-                reset_beginner_level()
-                game_state = "menu"
 
-            # sound
             if game_state == "menu":
                 if play_button_rect.collidepoint(event.pos):
                     game_state = "levels"
                     print("Play button clicked")
                     click_sound.play()
-                    continue
-                if settings_button_rect.collidepoint(event.pos):
-                    print("Settings button clicked")
+                elif settings_button_rect.collidepoint(event.pos):
+                    print("about button clicked")
+                    game_state = "about"
                     click_sound.play()
-                    continue
-                if exit_button_rect.collidepoint(event.pos):
+                elif exit_button_rect.collidepoint(event.pos):
                     game_state = "exit_confirm"
                     click_sound.play()
+
+            elif game_state == "about":
+                game_state = "menu"
 
             elif game_state == "exit_confirm":
                 if yes_rect.collidepoint(event.pos):
@@ -403,12 +401,16 @@ while running:
                     print("Master clicked")
                     loading_progress = 0
                     target_level = "level_master"
-                    # target_music = "music/master_music.wav"
                     game_state = "loading"
                 elif back_button_rect.collidepoint(event.pos):
                     click_sound.play()
                     game_state = "menu"
                     print("Back Clicked")
+
+            elif game_state in ["victory", "defeat"]:
+                reset_beginner_level()
+                reset_master_level()
+                game_state = "menu"
 
     # ==========================================
     # GAME STATES & RENDERING
@@ -479,6 +481,7 @@ while running:
         else:
             screen.blit(back_button, back_button_rect)
 
+
     # ====================================================
     # LOADING SCREEN STATE
     # ====================================================
@@ -525,6 +528,10 @@ while running:
                 master_music.play(-1)
                 
     # ====================================================
+
+    elif game_state == "about":
+        screen.blit(blur_back, (0, 0))
+        screen.blit(how_to_play, (0, 0))
 
     # exit confirm screen
     elif game_state == "exit_confirm":
@@ -1358,7 +1365,7 @@ while running:
                 continue
 
         if keys_collected == 3:
-            pygame.mixer.music.fadeout(1000)
+            master_music.fadeout(1000)
             if keys[pygame.K_RETURN] and player_rect.colliderect(door_rect):
                 victory_sound.play()
                 game_state = "victory"
