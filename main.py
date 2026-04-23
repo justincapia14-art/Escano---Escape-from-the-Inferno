@@ -92,13 +92,11 @@ keys_collected_status = []
 keys_collected = 0
 TOTAL_KEYS = 3
 
-# life positions and collection status
-life_rects_beginner = [
-    pygame.Rect(250, 370, 20, 20),
-    pygame.Rect(400, 175, 20, 20),
-    pygame.Rect(700, 440, 20, 20),
-]
-lives_collected = [False] * len(life_rects_beginner)
+# ====================================================
+# LIVES VARIABLES
+# ====================================================
+level_lives = []
+lives_collected_status = []
 
 # ====================================================
 # COINS VARIABLES
@@ -125,12 +123,12 @@ frozen_game_frame = None
 # FUNCTIONS
 # ====================================================
 
-def setup_level_items(key_coords, coin_coords):
+def setup_level_items(key_coords, coin_coords, life_coords):
     # Dito ise-setup ang positions per level
     global level_keys, keys_collected_status, keys_collected
     global level_coins, coins_collected_status, coin_count
+    global level_lives, lives_collected_status
 
-    # Gagawa ng Rects based sa (x, y) coordinates na ibibigay mo
     level_keys = [pygame.Rect(x, y, 20, 10) for x, y in key_coords]
     keys_collected_status = [False] * len(level_keys)
     keys_collected = 0
@@ -138,6 +136,10 @@ def setup_level_items(key_coords, coin_coords):
     level_coins = [pygame.Rect(x, y, 20, 20) for x, y in coin_coords]
     coins_collected_status = [False] * len(level_coins)
     coin_count = 0
+
+    # Para sa lives
+    level_lives = [pygame.Rect(x, y, 20, 20) for x, y in life_coords]
+    lives_collected_status = [False] * len(level_lives)
 
 def draw_and_check_items(surface, player_rect, offset, current_coin_frame):
     # Dito na lahat: Collision at Drawing para malinis sa main loop
@@ -180,16 +182,17 @@ def reset_beginner_level():
     global exit_fade_start, exit_fade_done
     global player_hp, hit_cooldown
     global enemies, player_bullets, shoot_anim_timer
-    global lives_collected
+    global lives_collected, lives_collected_status
     global breakable_bricks
     global door_rect
 
     beginner_keys = [(180, 380), (780, 320), (425, 154)]
     beginner_coins = [(420, 300), (420, 320), (440, 320), (440, 300), (460, 320), (460, 300)]
+    beginner_lives = [(250, 370), (400, 175), (700, 440)]
 
     door_rect = pygame.Rect(80, 82, 80, 80)
 
-    setup_level_items(beginner_keys, beginner_coins)
+    setup_level_items(beginner_keys, beginner_coins, beginner_lives)
 
     player_hp = max_hp
     hit_cooldown = 0
@@ -203,7 +206,6 @@ def reset_beginner_level():
     velocity_y = 0
     player_angle = 0
 
-    lives_collected = [False] * len(life_rects_beginner)
 
     # exit effect reset
     exit_fade_start = None
@@ -240,7 +242,7 @@ def reset_master_level():
     global exit_fade_start, exit_fade_done
     global player_hp, hit_cooldown
     global enemies, player_bullets, shoot_anim_timer
-    global lives_collected
+    global lives_collected, lives_collected_status
     global breakable_bricks
     global bosses
     global door_rect
@@ -248,10 +250,10 @@ def reset_master_level():
 
     master_keys = [(780, 460), (390, 460), (760, 80)]
     master_coins = [(240, 320), (220, 320), (200, 320), (240, 300), (220, 300), (200, 300)]
-
+    master_lives = [(250, 370), (400, 175), (700, 440), (500, 300), (600, 150)]
     door_rect = pygame.Rect(40, 140, 80, 80)
 
-    setup_level_items(master_keys, master_coins)
+    setup_level_items(master_keys, master_coins, master_lives)
 
     player_hp = max_hp
     hit_cooldown = 0
@@ -264,8 +266,6 @@ def reset_master_level():
     y = 460
     velocity_y = 0
     player_angle = 0
-
-    lives_collected = [False] * len(life_rects_beginner)
 
     # exit effect reset
     exit_fade_start = None
@@ -339,6 +339,8 @@ enemies = []
 active_heal_effects = []
 bosses = []
 
+is_menu_music_playing = False
+
 while running:
     moving = False
     # mouse position
@@ -371,6 +373,7 @@ while running:
                     click_sound.play()
 
             elif game_state == "how_to_play":
+                click_sound.play()
                 game_state = "menu"
 
             elif game_state == "exit_confirm":
@@ -416,6 +419,9 @@ while running:
     # GAME STATES & RENDERING
     # ==========================================
     if game_state == "menu":
+        if not is_menu_music_playing:
+            main_menu_music.play(loops=-1)
+            is_menu_music_playing = True
         # main menu background
         screen.blit(background_menu_scaled, (0, 0))
 
@@ -604,6 +610,7 @@ while running:
             screen.blit(defeat, (0, 0))
 
     elif game_state == "level_beginner":
+        main_menu_music.fadeout(1000)
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
         if hit_cooldown > 0:
@@ -727,7 +734,7 @@ while running:
         # ====================================================
         # PHYSICS INTEGRATION
         # ====================================================
-        platforms = master_get_platforms()
+        platforms = get_platforms()
         for b in breakable_bricks:
             platforms.append(b)
 
@@ -781,7 +788,8 @@ while running:
                 game_state = "victory"
 
         #LIFE COLLISION
-        lives_collected, player_hp, just_healed = check_life_collection(player_rect, life_rects_beginner, lives_collected, player_hp, max_hp, 20, life_sound)
+        #LIFE COLLISION
+        lives_collected_status, player_hp, just_healed = check_life_collection(player_rect, level_lives, lives_collected_status, player_hp, max_hp, 20, life_sound)
         
         if just_healed:
             active_heal_effects.append(HealEffect())
@@ -881,10 +889,10 @@ while running:
         time += 0.08
         offset = math.sin(time) * 5
 
-                # Draw Lives (ONLY IF NOT COLLECTED)
-        for i, life_rect in enumerate(life_rects_beginner):
-            if not lives_collected[i]:
-                world_surface.blit(life, (life_rect.x, life_rect.y + offset))
+        # Draw Lives (ONLY IF NOT COLLECTED)
+        for i in range(len(level_lives)):
+            if not lives_collected_status[i]:
+                world_surface.blit(life, (level_lives[i].x, level_lives[i].y + offset))
 
                 # animation ng pera
         frame_index += animation_speed
@@ -1371,7 +1379,7 @@ while running:
                 game_state = "victory"
 
         #LIFE COLLISION
-        lives_collected, player_hp, just_healed = check_life_collection(player_rect, life_rects_beginner, lives_collected, player_hp, max_hp, 20, life_sound)
+        lives_collected_status, player_hp, just_healed = check_life_collection(player_rect, level_lives, lives_collected_status, player_hp, max_hp, 20, life_sound)
         
         if just_healed:
             active_heal_effects.append(HealEffect())
@@ -1482,10 +1490,10 @@ while running:
         time += 0.08
         offset = math.sin(time) * 5
 
-                # Draw Lives (ONLY IF NOT COLLECTED)
-        for i, life_rect in enumerate(life_rects_beginner):
-            if not lives_collected[i]:
-                world_surface.blit(life, (life_rect.x, life_rect.y + offset))
+        # Draw Lives (ONLY IF NOT COLLECTED)
+        for i in range(len(level_lives)):
+            if not lives_collected_status[i]:
+                world_surface.blit(life, (level_lives[i].x, level_lives[i].y + offset))
 
 
                 # DRAW PLATFORMS
