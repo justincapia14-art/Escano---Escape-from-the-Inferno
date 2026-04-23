@@ -164,6 +164,12 @@ settings_button_hover = pygame.image.load("buttons/settings_hover.png").convert_
 settings_button_hover_scaled = pygame.transform.scale(settings_button_hover, (150, 40))
 settings_button_rect = settings_button_scaled.get_rect(topleft=(320, 400))
 
+how_to_play_button = pygame.image.load("buttons/how_to_play_button.png").convert_alpha()
+how_to_play_button = pygame.transform.scale(how_to_play_button, (150, 40))
+how_to_play_button_hover = pygame.image.load("buttons/how_to_play_button_hover.png").convert_alpha()
+how_to_play_button_hover = pygame.transform.scale(how_to_play_button_hover, (150, 40))
+how_to_play_button_rect = how_to_play_button.get_rect(topleft=(320, 400))
+
 exit_button = pygame.image.load("buttons/exit.png").convert_alpha()
 exit_button_scaled = pygame.transform.scale(exit_button, (150, 40))
 exit_button_hover = pygame.image.load("buttons/exit_hover.png").convert_alpha()

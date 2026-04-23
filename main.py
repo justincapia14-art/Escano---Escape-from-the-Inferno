@@ -247,7 +247,7 @@ def reset_master_level():
     global big_bosses
 
     master_keys = [(780, 460), (390, 460), (760, 80)]
-    master_coins = [(0, 0), (0, 0), (0, 0)]
+    master_coins = [(240, 320), (220, 320), (200, 320), (240, 300), (220, 300), (200, 300)]
 
     door_rect = pygame.Rect(40, 140, 80, 80)
 
@@ -362,15 +362,15 @@ while running:
                     game_state = "levels"
                     print("Play button clicked")
                     click_sound.play()
-                elif settings_button_rect.collidepoint(event.pos):
-                    print("about button clicked")
-                    game_state = "about"
+                elif how_to_play_button_rect.collidepoint(event.pos):
+                    print("how to play button clicked")
+                    game_state = "how_to_play"
                     click_sound.play()
                 elif exit_button_rect.collidepoint(event.pos):
                     game_state = "exit_confirm"
                     click_sound.play()
 
-            elif game_state == "about":
+            elif game_state == "how_to_play":
                 game_state = "menu"
 
             elif game_state == "exit_confirm":
@@ -431,11 +431,11 @@ while running:
         else:
             screen.blit(play_button_scaled, play_button_rect)
         
-        # settings button/hover
-        if settings_button_rect.collidepoint(mouse_pos):
-            screen.blit(settings_button_hover_scaled, settings_button_rect)
+        # how to play button/hover
+        if how_to_play_button_rect.collidepoint(mouse_pos):
+            screen.blit(how_to_play_button_hover, how_to_play_button_rect)
         else:
-            screen.blit(settings_button_scaled, settings_button_rect)
+            screen.blit(how_to_play_button, how_to_play_button_rect)
 
         # exit button/hover
         if exit_button_rect.collidepoint(mouse_pos):
@@ -529,7 +529,7 @@ while running:
                 
     # ====================================================
 
-    elif game_state == "about":
+    elif game_state == "how_to_play":
         screen.blit(blur_back, (0, 0))
         screen.blit(how_to_play, (0, 0))
 
@@ -1732,7 +1732,7 @@ while running:
             cam_shake_y = random.randint(-10, 10)
             screen_shake_frames -= 1
 
-        draw_zoomed_camera(screen, world_surface, x + cam_shake_x, y + cam_shake_y, player_width, player_height, width, height, zoom=2)
+        draw_zoomed_camera(screen, world_surface, x + cam_shake_x, y + cam_shake_y, player_width, player_height, width, height, zoom=1)
 
         if player_rect.colliderect(door_rect):
             screen.blit(enter, (0, 0 + offset))
